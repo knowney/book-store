@@ -56,7 +56,7 @@ if ($isAjax) {
     $count_res = mysqli_query($conn, "SELECT SUM(quantity) as cnt FROM cart WHERE user_id='$user_id'");
     $cnt = ($count_res && $row = mysqli_fetch_assoc($count_res)) ? intval($row['cnt']) : 0;
     header('Content-Type: application/json');
-    echo json_encode(['success' => true, 'message' => 'เพิ่มลงตะกร้าเรียบร้อย', 'cart_count' => $cnt, 'product_title' => $product['title']]);
+    echo json_encode(['success' => true, 'message' => 'เพิ่มสินค้าเข้าตะกร้าแล้ว', 'cart_count' => $cnt, 'product_title' => $product['title']]);
     exit();
 } else {
     header("Location: cart.php");

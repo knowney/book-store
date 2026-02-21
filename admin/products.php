@@ -2,8 +2,47 @@
 include '../config.php';
 include '../check_admin.php';
 
-$query = "SELECT * FROM products ORDER BY created_at DESC";
+// 1. รับค่าสำหรับการค้นหาและกรองข้อมูล
+$search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
+$stock_filter = isset($_GET['stock']) ? mysqli_real_escape_string($conn, $_GET['stock']) : '';
+
+// 2. ตั้งค่า Pagination
+$limit = 10; // จำนวนรายการต่อหน้า
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
+// 3. สร้างเงื่อนไข SQL (WHERE clause)
+$where_clauses = [];
+if (!empty($search)) {
+    $where_clauses[] = "(id LIKE '%$search%' OR title LIKE '%$search%' OR author LIKE '%$search%')";
+}
+if (!empty($stock_filter)) {
+    if ($stock_filter == 'in_stock') {
+        $where_clauses[] = "stock > 0";
+    } elseif ($stock_filter == 'out_of_stock') {
+        $where_clauses[] = "stock <= 0";
+    }
+}
+
+$where_sql = "";
+if (count($where_clauses) > 0) {
+    $where_sql = "WHERE " . implode(" AND ", $where_clauses);
+}
+
+// 4. หาจำนวนรายการทั้งหมดเพื่อไปทำปุ่มหน้า (Pagination)
+$count_query = "SELECT COUNT(*) as total FROM products $where_sql";
+$count_result = mysqli_query($conn, $count_query);
+$total_rows = mysqli_fetch_assoc($count_result)['total'];
+$total_pages = ceil($total_rows / $limit);
+
+// 5. ดึงข้อมูลหลัก
+$query = "SELECT * FROM products $where_sql ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
 $result = mysqli_query($conn, $query);
+
+// สร้างตัวแปรเก็บ Query String สำหรับปุ่มเปลี่ยนหน้า
+$query_string = "";
+if (!empty($search)) $query_string .= "&search=" . urlencode($search);
+if (!empty($stock_filter)) $query_string .= "&stock=" . urlencode($stock_filter);
 ?>
 <!DOCTYPE html>
 <html>
@@ -33,7 +72,7 @@ $result = mysqli_query($conn, $query);
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18" />
                     </svg><span>Dashboard</span>
                 </a>
-                <a href="products.php" class="block px-3 py-2 rounded hover:bg-blue-800 flex items-center space-x-2">
+                <a href="products.php" class="block px-3 py-2 rounded hover:bg-blue-800 flex items-center space-x-2 bg-blue-800">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20l9-5-9-5-9 5 9 5z" />
                     </svg><span>จัดการหนังสือ</span>
@@ -57,71 +96,107 @@ $result = mysqli_query($conn, $query);
         </aside>
 
         <main class="ml-64 w-full p-8">
-            <header class="flex justify-between items-center mb-4">
-                <h1 class="text-2xl font-semibold">จัดการหนังสือ</h1>
-                <a href="product_add.php" class="bg-green-600 text-white px-4 py-2 rounded">เพิ่มหนังสือใหม่</a>
+            <header class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-semibold text-gray-800">จัดการหนังสือ</h1>
+                <a href="product_add.php" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors shadow-sm font-medium">เพิ่มหนังสือใหม่</a>
             </header>
 
-            <div class="bg-white rounded shadow overflow-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-blue-700 text-white">
-                        <tr>
-                            <th class="px-6 py-3 text-left">ID</th>
-                            <th class="px-6 py-3 text-left">ชื่อเรื่อง</th>
-                            <th class="px-6 py-3 text-left">ผู้เขียน</th>
-                            <th class="px-6 py-3 text-left">ราคา</th>
-                            <th class="px-6 py-3 text-left">สต็อก</th>
-                            <th class="px-6 py-3 text-left">การจัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                        <tr>
-                            <td class="px-6 py-4"><?php echo $row['id']; ?></td>
-                            <td class="px-6 py-4"><?php echo $row['title']; ?></td>
-                            <td class="px-6 py-4"><?php echo $row['author']; ?></td>
-                            <td class="px-6 py-4">฿<?php echo number_format($row['price'], 2); ?></td>
-                            <td class="px-6 py-4"><?php echo $row['stock']; ?></td>
-                            <td class="px-6 py-4">
-                                <a href="product_edit.php?id=<?php echo $row['id']; ?>" class="inline-flex items-center bg-blue-600 text-white px-3 py-1 rounded mr-2">
-                                    <!-- pencil -->
-                                    แก้ไข
-                                </a>
-                                <a href="product_delete.php?id=<?php echo $row['id']; ?>" class="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded confirm-delete" data-confirm="<?php echo 'ยืนยันการลบหนังสือ #' . $row['id'] . ' ?'; ?>">
-                                    <!-- trash -->
-                                    ลบ
-                                </a>
-                            </td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+            <div class="bg-white p-4 rounded shadow mb-6">
+                <form method="GET" action="products.php" class="flex flex-col md:flex-row gap-4 items-center">
+                    <div class="flex-1 w-full">
+                        <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="ค้นหาจากรหัส, ชื่อเรื่อง หรือผู้เขียน..." class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="w-full md:w-48">
+                        <select name="stock" class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">-- สถานะสต็อก --</option>
+                            <option value="in_stock" <?php echo $stock_filter == 'in_stock' ? 'selected' : ''; ?>>มีสินค้า</option>
+                            <option value="out_of_stock" <?php echo $stock_filter == 'out_of_stock' ? 'selected' : ''; ?>>สินค้าหมด</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors w-full md:w-auto">ค้นหา</button>
+                        <?php if(!empty($search) || !empty($stock_filter)): ?>
+                            <a href="products.php" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors text-center w-full md:w-auto">ล้างค่า</a>
+                        <?php endif; ?>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white rounded shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-blue-700 text-white">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-sm font-medium">ID</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium">ชื่อเรื่อง</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium">ผู้เขียน</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium">ราคา</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium">สต็อก</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium">การจัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <?php if(mysqli_num_rows($result) > 0): ?>
+                                <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                                <tr>
+                                    <td class="px-6 py-4 text-sm text-gray-900"><?php echo $row['id']; ?></td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900"><?php echo htmlspecialchars($row['title']); ?></td>
+                                    <td class="px-6 py-4 text-sm text-gray-500"><?php echo htmlspecialchars($row['author']); ?></td>
+                                    <td class="px-6 py-4 text-sm font-medium text-blue-600">฿<?php echo number_format($row['price'], 2); ?></td>
+                                    <td class="px-6 py-4">
+                                        <?php if($row['stock'] > 0): ?>
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium"><?php echo $row['stock']; ?> เล่ม</span>
+                                        <?php else: ?>
+                                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-medium">หมด</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm font-medium">
+                                        <a href="product_edit.php?id=<?php echo $row['id']; ?>" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded mr-2 transition-colors">
+                                            แก้ไข
+                                        </a>
+                                        <a href="product_delete.php?id=<?php echo $row['id']; ?>" class="inline-flex items-center bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded confirm-delete transition-colors" data-confirm="<?php echo 'ยืนยันการลบหนังสือ #' . $row['id'] . ' ใช่หรือไม่?'; ?>">
+                                            ลบ
+                                        </a>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                        ไม่พบข้อมูลหนังสือที่ค้นหา
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <?php if($total_pages > 1): ?>
+                <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        แสดงข้อมูลหน้า <span class="font-medium"><?php echo $page; ?></span> จากทั้งหมด <span class="font-medium"><?php echo $total_pages; ?></span> หน้า (รวม <?php echo $total_rows; ?> รายการ)
+                    </div>
+                    <div class="flex space-x-1">
+                        <?php if($page > 1): ?>
+                            <a href="?page=<?php echo ($page - 1) . $query_string; ?>" class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50">ก่อนหน้า</a>
+                        <?php endif; ?>
+                        
+                        <?php for($i = 1; $i <= $total_pages; $i++): ?>
+                            <a href="?page=<?php echo $i . $query_string; ?>" class="px-3 py-1 border border-gray-300 rounded <?php echo $i == $page ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'; ?>">
+                                <?php echo $i; ?>
+                            </a>
+                        <?php endfor; ?>
+
+                        <?php if($page < $total_pages): ?>
+                            <a href="?page=<?php echo ($page + 1) . $query_string; ?>" class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50">ถัดไป</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </main>
     </div>
-
-    <!-- Tailwind confirm modal -->
-    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-40">
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg mx-4">
-            <div class="p-4 border-b">
-                <h3 id="confirm-title" class="text-lg font-semibold">ยืนยันการลบ</h3>
-            </div>
-            <div class="p-4">
-                <p id="confirm-message" class="text-sm text-gray-700"></p>
-                <div class="mt-4">
-                    <label class="block text-sm text-gray-600 mb-2">เหตุผล (ถ้ามี)</label>
-                    <input id="confirm-reason" type="text" class="w-full px-3 py-2 border rounded" placeholder="ใส่เหตุผลการลบ (ไม่บังคับ)">
-                </div>
-            </div>
-            <div class="flex justify-end p-4 border-t space-x-2">
-                <button id="confirm-cancel" class="px-4 py-2 rounded bg-gray-200">ยกเลิก</button>
-                <button id="confirm-ok" class="px-4 py-2 rounded bg-red-600 text-white">ลบ</button>
-            </div>
-        </div>
-    </div>
-
 </body>
 </html>
 
-<!-- Include Tailwind Confirm Modal -->
 <?php include '../includes/confirm_modal.php'; ?>

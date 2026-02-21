@@ -170,52 +170,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_order'])) {
     </main>
 
         
-    <div id="checkout-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-40 backdrop-blur-sm overflow-y-auto">
-    <div class="flex items-center justify-center min-h-screen px-4 py-8">
-        
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl transform transition-all duration-200 scale-95 opacity-0 flex flex-col max-h-[90vh]">
+   <div id="checkout-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-40 backdrop-blur-sm overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 py-8">
             
-            <div class="p-4 border-b flex justify-between items-center shrink-0">
-                <h3 class="text-lg font-semibold text-gray-900">ยืนยันการสั่งซื้อ</h3>
-                <button type="button" id="close-checkout" class="text-gray-400 hover:text-gray-600 focus:outline-none text-xl leading-none">&times;</button>
-            </div>
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl transform transition-all duration-200 scale-95 opacity-0 flex flex-col max-h-[90vh]">
+                
+                <div class="p-4 border-b flex justify-between items-center shrink-0">
+                    <h3 class="text-lg font-semibold text-gray-900">ยืนยันการสั่งซื้อและชำระเงิน</h3>
+                    <button type="button" id="close-checkout" class="text-gray-400 hover:text-gray-600 focus:outline-none text-xl leading-none">&times;</button>
+                </div>
 
-            <form method="POST" enctype="multipart/form-data" class="p-4 overflow-y-auto flex-1">
-                <input type="hidden" name="confirm_order" value="1">
+                <form method="POST" enctype="multipart/form-data" class="p-4 overflow-y-auto flex-1">
+                    <input type="hidden" name="confirm_order" value="1">
 
-                <div class="mb-4">
-                    <h4 class="font-medium text-gray-800">รายการสินค้า</h4>
-                    <div class="mt-2 space-y-2 bg-gray-50 p-3 rounded-md border border-gray-100">
-                        <?php foreach ($items as $it): ?>
-                        <div class="flex justify-between text-sm text-gray-600">
-                            <div><?php echo htmlspecialchars($it['title']); ?> <span class="text-gray-400">x <?php echo intval($it['quantity']); ?></span></div>
-                            <div class="font-medium">฿<?php echo number_format($it['line_total'], 2); ?></div>
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800">รายการสินค้า</h4>
+                        <div class="mt-2 space-y-2 bg-gray-50 p-3 rounded-md border border-gray-100">
+                            <?php foreach ($items as $it): ?>
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <div><?php echo htmlspecialchars($it['title']); ?> <span class="text-gray-400">x <?php echo intval($it['quantity']); ?></span></div>
+                                <div class="font-medium">฿<?php echo number_format($it['line_total'], 2); ?></div>
+                            </div>
+                            <?php endforeach; ?>
                         </div>
-                        <?php endforeach; ?>
                     </div>
-                </div>
 
-                <div class="mb-6 border-t border-gray-200 pt-4">
-                    <div class="flex justify-between text-lg font-bold text-gray-900">
-                        <div>ยอดรวมทั้งสิ้น</div>
-                        <div class="text-blue-700">฿<?php echo number_format($total, 2); ?></div>
+                    <div class="mb-6 border-t border-gray-200 pt-4">
+                        <div class="flex justify-between text-lg font-bold text-gray-900">
+                            <div>ยอดรวมทั้งสิ้น</div>
+                            <div class="text-blue-700">฿<?php echo number_format($total, 2); ?></div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="mb-6">
-                    <label class="block font-medium text-gray-700 mb-2">อัปโหลดสลิปการโอนเงิน (ภาพ)</label>
-                    <input type="file" name="slip_image" accept="image/*" required class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors">
-                </div>
+                    <div class="mb-6 bg-blue-50 border border-blue-100 rounded-lg p-4 text-center">
+                        <h4 class="font-semibold text-blue-900 mb-2">สแกน QR Code เพื่อชำระเงิน</h4>
+                        <p class="text-sm text-blue-700 mb-4">กรุณาโอนเงินยอด <span class="font-bold">฿<?php echo number_format($total, 2); ?></span></p>
+                        
+                        <img src="qr/1.jpg" alt="QR Code ธนาคาร" class="mx-auto w-48 h-auto object-contain rounded border border-gray-200 bg-white p-2 shadow-sm">
+                        
+                        <div class="mt-3 text-sm text-gray-600">
+                            <p>ธนาคาร <strong>กสิกรไทย</strong></p>
+                            <p>ชื่อบัญชี <strong>ร้านหนังสือ Book Store</strong></p>
+                            <p>เลขที่บัญชี <strong>xxx-x-xxxxx-x</strong></p>
+                        </div>
+                    </div>
 
-                <div class="flex justify-end space-x-3 pt-4 border-t border-gray-100">
-                    <button type="button" id="cancel-checkout" class="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-medium">
-                        ยกเลิก
-                    </button>
-                    <button type="submit" class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium shadow-sm">
-                        ยืนยันการสั่งซื้อ
-                    </button>
-                </div>
-            </form>
+                    <div class="mb-6">
+                        <label class="block font-medium text-gray-700 mb-2">อัปโหลดสลิปการโอนเงิน (ภาพ)</label>
+                        <input type="file" name="slip_image" accept="image/*" required class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors">
+                        <p class="mt-1 text-xs text-gray-500">* รองรับไฟล์ .jpg, .jpeg, .png, .gif</p>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                        <button type="button" id="cancel-checkout" class="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-medium">
+                            ยกเลิก
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium shadow-sm">
+                            ยืนยันการสั่งซื้อ
+                        </button>
+                    </div>
+                </form>
+                
+            </div>
+        </div>
+    </div>
             
         </div>
     </div>

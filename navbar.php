@@ -50,13 +50,13 @@ if (isset($_SESSION['user_id'])) {
                         <span>หน้าหลัก</span>
                     </a>
                     
-                    <a href="cart.php" class="text-white hover:text-yellow-300 transition-colors font-medium flex items-center space-x-2 group relative">
+                    <a href="cart.php" id="cart-link" class="text-white hover:text-yellow-300 transition-colors font-medium flex items-center space-x-2 group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                         </svg>
                         <span>ตะกร้า</span>
                         <?php if ($cart_count > 0): ?>
-                            <span class="absolute -top-2 -right-6 bg-red-500 text-white text-xs rounded-full px-2 py-1 font-bold min-w-[24px] text-center">
+                            <span id="cart-count" class="absolute -top-2 -right-6 bg-red-500 text-white text-xs rounded-full px-2 py-1 font-bold min-w-[24px] text-center">
                                 <?php echo $cart_count; ?>
                             </span>
                         <?php endif; ?>
