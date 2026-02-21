@@ -337,5 +337,8 @@ if ($cnt_res && $cnt_row = mysqli_fetch_assoc($cnt_res)) {
             }
         });
     </script>
+
+    <!-- Include Tailwind Confirm Modal -->
+    <?php include 'includes/confirm_modal.php'; ?>
 </body>
 </html>

@@ -29,8 +29,11 @@ if (isset($_GET['delete_id'])) {
         <td><?php echo $row['email']; ?></td>
         <td>
             <a href="update.php?id=<?php echo $row['id']; ?>">แก้ไข</a> | 
-            <a href="read.php?delete_id=<?php echo $row['id']; ?>" onclick="return confirm('ยืนยันการลบ?')">ลบ</a>
+            <a href="read.php?delete_id=<?php echo $row['id']; ?>" class="confirm-delete" data-confirm="ยืนยันการลบ?">ลบ</a>
         </td>
     </tr>
     <?php } ?>
 </table>
+
+<!-- Include Tailwind Confirm Modal -->
+<?php include 'includes/confirm_modal.php'; ?>

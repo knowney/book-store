@@ -123,55 +123,5 @@ $result = mysqli_query($conn, $query);
 </body>
 </html>
 
-<!-- Tailwind confirm handler -->
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  const modal = document.getElementById('confirm-modal');
-  const msgEl = document.getElementById('confirm-message');
-  const reasonEl = document.getElementById('confirm-reason');
-  const okBtn = document.getElementById('confirm-ok');
-  const cancelBtn = document.getElementById('confirm-cancel');
-  let targetHref = null;
-
-  function openModal(message, href){
-    msgEl.textContent = message || 'ยืนยันการลบ?';
-    reasonEl.value = '';
-    targetHref = href;
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    reasonEl.focus();
-  }
-
-  function closeModal(){
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    targetHref = null;
-  }
-
-  document.querySelectorAll('a.confirm-delete').forEach(function(el){
-    el.addEventListener('click', function(e){
-      e.preventDefault();
-      const message = el.getAttribute('data-confirm') || 'ยืนยันการลบ?';
-      const href = el.getAttribute('href');
-      openModal(message, href);
-    });
-  });
-
-  cancelBtn.addEventListener('click', function(){ closeModal(); });
-
-  okBtn.addEventListener('click', function(){
-    if (!targetHref) return closeModal();
-    const reason = reasonEl.value.trim();
-    // append reason as query param if provided
-    let url = new URL(targetHref, window.location.origin);
-    if (reason) url.searchParams.set('reason', reason);
-    // navigate
-    window.location.href = url.toString();
-  });
-
-  // close modal on Escape
-  document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
-  });
-});
-</script>
+<!-- Include Tailwind Confirm Modal -->
+<?php include '../includes/confirm_modal.php'; ?>

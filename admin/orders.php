@@ -141,14 +141,5 @@ $result = mysqli_query($conn, $query);
 </body>
 </html>
 
-<!-- add confirm handler -->
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  document.querySelectorAll('a.confirm-delete').forEach(function(el){
-    el.addEventListener('click', function(e){
-      var msg = el.getAttribute('data-confirm') || 'ยืนยันการลบ?';
-      if (!confirm(msg)) e.preventDefault();
-    });
-  });
-});
-</script>
+<!-- Include Tailwind Confirm Modal -->
+<?php include '../includes/confirm_modal.php'; ?>

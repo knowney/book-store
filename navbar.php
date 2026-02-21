@@ -113,14 +113,14 @@ if (isset($_SESSION['user_id'])) {
                                 
                                 <hr class="my-2">
                                 
-                                <form method="POST" action="logout.php" class="px-4 py-2">
-                                    <button type="submit" onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?')" class="w-full flex items-center px-2 py-2 text-red-600 hover:bg-red-50 rounded transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                        </svg>
-                                        ออกจากระบบ
-                                    </button>
-                                </form>
+                                    <form method="POST" action="logout.php" class="px-4 py-2">
+                                        <button type="submit" class="w-full flex items-center px-2 py-2 text-red-600 hover:bg-red-50 rounded transition-colors confirm-action" data-confirm="คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                            </svg>
+                                            ออกจากระบบ
+                                        </button>
+                                    </form>
                             </div>
                         </div>
                     </div>
@@ -194,15 +194,33 @@ if (isset($_SESSION['user_id'])) {
                             <span>จัดการระบบ</span>
                         </a>
                     <?php endif; ?>
-                    
-                    <form method="POST" action="logout.php" class="pt-2">
-                        <button type="submit" onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?')" class="w-full flex items-center space-x-3 text-red-600 hover:text-red-700 transition-colors py-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                            </svg>
-                            <span>ออกจากระบบ</span>
-                        </button>
-                    </form>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+    // หาปุ่มทั้งหมดที่มีคลาส confirm-action
+    const confirmButtons = document.querySelectorAll('.confirm-action');
+    
+    confirmButtons.forEach(button => {
+        button.addEventListener('click', function(event) {
+            // ดึงข้อความจาก data-confirm
+            const message = this.getAttribute('data-confirm');
+            
+            // แสดงหน้าต่าง Confirm
+            if (!confirm(message)) {
+                // ถ้าผู้ใช้กด Cancel ให้ยกเลิกการ submit
+                event.preventDefault(); 
+            }
+        });
+    });
+});
+                    </script>
+                  <form method="POST" action="logout.php" class="pt-2">
+    <button type="submit" class="w-full flex items-center space-x-3 text-red-600 hover:text-red-700 transition-colors py-2" data-title="ยืนยันการออกจากระบบ" data-confirm="คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        <span>ออกจากระบบ</span>
+    </button>
+</form>
                 </div>
             <?php else: ?>
                 <hr class="border-gray-200">
@@ -238,3 +256,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<!-- Include Tailwind Confirm Modal -->
+<?php include 'includes/confirm_modal.php'; ?>
